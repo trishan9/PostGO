@@ -1,36 +1,40 @@
 package helpers
 
 import (
-	"bytes"
 	"fmt"
-	"log"
 	"os"
-	"text/template"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-func SendMail(otpCode int, receiverName string, receiverEmail string) {
-	var body bytes.Buffer
-	t, err := template.ParseFiles("./assets/email_template.html")
+func SendMail(otpCode string, receiverName string, receiverEmail string) {
+	m := mail.NewV3Mail()
 
-	if err != nil {
-		log.Fatal("Error parsing template:", err)
+	address := "mailtotrishan@gmail.com"
+	name := "PostApp by Trishan"
+	e := mail.NewEmail(name, address)
+	m.SetFrom(e)
+
+	m.SetTemplateID("d-10caee8418f54ecca263f3825112b41e")
+
+	p := mail.NewPersonalization()
+	tos := []*mail.Email{
+		mail.NewEmail(receiverName, receiverEmail),
 	}
+	p.AddTos(tos...)
 
-	t.Execute(&body, struct {
-		Code string
-	}{Code: "991991"})
+	p.SetDynamicTemplateData("code", otpCode)
 
-	from := mail.NewEmail("PostApp by Trishan", "mailtotrishan@gmail.com")
-	subject := "Verify your account!"
-	to := mail.NewEmail(receiverName, receiverEmail)
-	message := mail.NewSingleEmail(from, subject, to, body.String(), body.String())
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	response, err := client.Send(message)
+	m.AddPersonalizations(p)
+
+	request := sendgrid.GetRequest(os.Getenv("SENDGRID_API_KEY"), "/v3/mail/send", "https://api.sendgrid.com")
+	request.Method = "POST"
+	var Body = mail.GetRequestBody(m)
+	request.Body = Body
+	response, err := sendgrid.API(request)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
 		fmt.Println(response.StatusCode)
 		fmt.Println(response.Body)
