@@ -48,6 +48,11 @@ func IsAuthenticated(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
+		// Check if user's email address is verified
+		if !user.IsVerified {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
 		// Attach user to request
 		c.Set("user", user)
 

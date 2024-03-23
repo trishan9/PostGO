@@ -23,6 +23,8 @@ func main() {
 
 	// Auth Routes
 	r.POST("/api/auth/signup", controllers.SignUp)
+	r.POST("/api/auth/signup/validate", controllers.ValidateOtp)
+	r.POST("/api/auth/signup/regenerate", controllers.RegenerateOtp)
 	r.POST("/api/auth/login", controllers.Login)
 
 	// Posts Routes
