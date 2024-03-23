@@ -55,5 +55,5 @@ func main() {
 	postsRouter.PATCH("/:id", middlewares.IsAuthenticated, controllers.UpdatePost)
 	postsRouter.DELETE("/:id", middlewares.IsAuthenticated, controllers.DeletePost)
 
-	r.Run(port) // 8080 port by default
+	r.Run(":" + port) // 8080 port by default
 }
