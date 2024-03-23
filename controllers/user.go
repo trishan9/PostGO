@@ -1,25 +1,15 @@
 package controllers
 
 import (
-	"context"
-	"log"
 	"net/http"
-	"os"
-	"time"
 
-	"github.com/cloudinary/cloudinary-go/v2"
-	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/trishan9/Gin-CRUD/helpers"
 	"github.com/trishan9/Gin-CRUD/initializers"
 	"github.com/trishan9/Gin-CRUD/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func SignUp(c *gin.Context) {
-	// Get the email and password from Request Body
 	var reqBody struct {
 		Name     string `json:"name"`
 		Email    string `json:"email"`
@@ -27,8 +17,7 @@ func SignUp(c *gin.Context) {
 	}
 	c.Bind(&reqBody)
 
-	// Hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(reqBody.Password), 10)
+	hashedPassword, err := helpers.GenerateHash(reqBody.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to hash password",
@@ -50,27 +39,23 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	// Upload the image on the cloud, get the image url and remove from server
-	cld, _ := cloudinary.NewFromURL(os.Getenv("CLOUDINARY_URL"))
-	var ctx = context.Background()
-	resp, err := cld.Upload.Upload(ctx, "assets/uploads/"+file.Filename, uploader.UploadParams{PublicID: "my_image"})
+	// Get the image url after uploading to cloud
+	avatarUrl, err := helpers.UploadToCloudinary(file)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload avatar"})
 		return
 	}
 
-	log.Println(resp.SecureURL)
+	otpCode := helpers.GenerateOtp()
+	mailErr := helpers.SendMail(otpCode, reqBody.Name, reqBody.Email)
 
-	defer func() {
-		os.Remove("assets/uploads/" + file.Filename)
-	}()
+	if mailErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": mailErr.Error()})
+		return
+	}
 
-	// Create the OTP and send to mail
-	otpCode := uuid.New().String()
-	helpers.SendMail(otpCode[:8], reqBody.Name, reqBody.Email)
-
-	user := models.User{Name: reqBody.Name, Email: reqBody.Email, Avatar: string(resp.SecureURL), Password: string(hashedPassword), OtpCode: string(otpCode[:8])}
+	user := models.User{Name: reqBody.Name, Email: reqBody.Email, Avatar: string(avatarUrl), Password: string(hashedPassword), OtpCode: string(otpCode)}
 	result := initializers.DB.Create(&user)
 
 	if result.Error != nil {
@@ -140,10 +125,15 @@ func RegenerateOtp(c *gin.Context) {
 		return
 	}
 
-	otpCode := uuid.New().String()
-	helpers.SendMail(otpCode[:8], user.Name, user.Email)
+	otpCode := helpers.GenerateOtp()
+	mailErr := helpers.SendMail(otpCode, user.Name, user.Email)
 
-	initializers.DB.Model(&user).Update("otp_code", otpCode[:8])
+	if mailErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": mailErr.Error()})
+		return
+	}
+
+	initializers.DB.Model(&user).Update("otp_code", otpCode)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "OTP sent successfully!",
@@ -167,8 +157,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Compare the hashed password
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(reqBody.Password))
+	err := helpers.CompareHash(reqBody.Password, user.Password)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -177,13 +166,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate and Set JWT Token on Cookie
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
-	})
-
-	tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, _ := helpers.GenerateToken(user.ID)
 
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)

@@ -7,17 +7,14 @@ import (
 )
 
 func CreatePosts(c *gin.Context) {
-	// Get User
 	user, _ := c.Get("user")
 
-	// Get Post Data from Request Body
 	var reqBody struct {
 		Title string `json:"title"`
 		Body  string `json:"body,omitempty"`
 	}
 	c.Bind(&reqBody)
 
-	// Create Post in DB
 	post := models.Post{Title: reqBody.Title, Body: reqBody.Body, UserID: user.(models.User).ID}
 	result := initializers.DB.Create(&post)
 
@@ -38,7 +35,6 @@ func CreatePosts(c *gin.Context) {
 func GetPosts(c *gin.Context) {
 	user, _ := c.Get("user")
 
-	// Get All Posts
 	var posts []models.Post
 	result := initializers.DB.Find(&posts, "user_id = ?", user.(models.User).ID)
 
@@ -56,11 +52,9 @@ func GetPosts(c *gin.Context) {
 }
 
 func GetPostById(c *gin.Context) {
-	// Get Post ID
 	postId := c.Param("id")
 	// c.GetQuery("type")
 
-	// Get Post
 	var post models.Post
 	result := initializers.DB.First(&post, postId)
 
