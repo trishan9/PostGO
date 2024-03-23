@@ -9,11 +9,31 @@ import (
 	"github.com/trishan9/Gin-CRUD/models"
 )
 
+type SignUpRequestBody struct {
+	Name     string `json:"name" example:"John Doe"`
+	Email    string `json:"email" example:"john@example.com"`
+	Password string `json:"password" example:"password123"`
+	Avatar   string `json:"avatar" example:"avatar.jpg" type:"file"`
+}
+
+type SignUpSuccessResponse struct {
+	Message string `json:"message" example:"Sign up successful"`
+}
+
+// SignUp registers a new user.
+// @Tags Auth
+// @Summary Register a new user
+// @Description Register a new user
+// @Accept json, multipart/form-data
+// @Produce json
+// @Param body body SignUpRequestBody true "User Data"
+// @Success 200 {object} SignUpSuccessResponse
+// @Router /api/auth/signup [post]
 func SignUp(c *gin.Context) {
 	var reqBody struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Name     string `json:"name" form:"name" binding:"required"`
+		Email    string `json:"email" form:"email" binding:"required"`
+		Password string `json:"password" form:"password" binding:"required"`
 	}
 	c.Bind(&reqBody)
 
@@ -71,6 +91,24 @@ func SignUp(c *gin.Context) {
 	})
 }
 
+type ValidateOtpRequestBody struct {
+	Email   string `json:"email" example:"john@example.com"`
+	OtpCode string `json:"otp" example:"123456"`
+}
+
+type ValidateOtpSuccessResponse struct {
+	Message string `json:"message" example:"Email address verified successfully!"`
+}
+
+// / ValidateOtp validates the OTP for email verification.
+// @Tags Auth
+// @Summary Validate email address
+// @Description Validate email address using OTP
+// @Accept json
+// @Produce json
+// @Param body body ValidateOtpRequestBody true "Request Body"
+// @Success 200 {object} ValidateOtpSuccessResponse
+// @Router /api/auth/signup/validate [post]
 func ValidateOtp(c *gin.Context) {
 	var reqBody struct {
 		Email   string `json:"email"`
@@ -109,6 +147,23 @@ func ValidateOtp(c *gin.Context) {
 	})
 }
 
+type RegenerateOtpRequestBody struct {
+	Email string `json:"email" example:"john@example.com"`
+}
+
+type RegenerateOtpSuccessResponse struct {
+	Message string `json:"message" example:"OTP sent successfully!"`
+}
+
+// RegenerateOtp regenerates the OTP for email verification.
+// @Tags Auth
+// @Summary Regenerate OTP
+// @Description Regenerate OTP for email verification
+// @Accept json
+// @Produce json
+// @Param body body RegenerateOtpRequestBody true "Request Body"
+// @Success 200 {object} RegenerateOtpSuccessResponse
+// @Router /api/auth/signup/regenerate [post]
 func RegenerateOtp(c *gin.Context) {
 	var reqBody struct {
 		Email string `json:"email"`
@@ -140,6 +195,24 @@ func RegenerateOtp(c *gin.Context) {
 	})
 }
 
+type LoginRequestBody struct {
+	Email    string `json:"email" example:"john@example.com"`
+	Password string `json:"password" example:"password123"`
+}
+
+type LoginSuccessResponse struct {
+	Message string `json:"message" example:"Logged in successfully!"`
+}
+
+// Login logs in a user.
+// @Tags Auth
+// @Summary User login
+// @Description Log in a user
+// @Accept json
+// @Produce json
+// @Param body body LoginRequestBody true "Request Body"
+// @Success 200 {object} LoginSuccessResponse
+// @Router /api/auth/login [post]
 func Login(c *gin.Context) {
 	var reqBody struct {
 		Email    string `json:"email"`

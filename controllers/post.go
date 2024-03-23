@@ -6,7 +6,27 @@ import (
 	"github.com/trishan9/Gin-CRUD/models"
 )
 
-func CreatePosts(c *gin.Context) {
+type CreatePostRequestBody struct {
+	Title string `json:"title" example:"Post Title"`
+	Body  string `json:"body,omitempty" example:"Post Body"`
+}
+
+type CreatePostResponse struct {
+	Post    models.Post `json:"post"`
+	Message string      `json:"message" example:"Post created"`
+}
+
+// CreatePost creates a new post.
+// @Summary Create a new post
+// @Description Create a new post
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param body body CreatePostRequestBody true "Post Data"
+// @Security ApiKeyAuth
+// @Success 201 {object} CreatePostResponse
+// @Router /api/posts/ [post]
+func CreatePost(c *gin.Context) {
 	user, _ := c.Get("user")
 
 	var reqBody struct {
@@ -32,6 +52,20 @@ func CreatePosts(c *gin.Context) {
 	})
 }
 
+type GetPostsResponse struct {
+	Posts   []models.Post `json:"posts"`
+	Message string        `json:"message" example:"Posts fetched successfully"`
+}
+
+// GetPosts gets all posts of the authenticated user.
+// @Summary Get all posts
+// @Description Get all posts of the authenticated user
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} GetPostsResponse
+// @Router /api/posts/ [get]
 func GetPosts(c *gin.Context) {
 	user, _ := c.Get("user")
 
@@ -51,6 +85,21 @@ func GetPosts(c *gin.Context) {
 	})
 }
 
+type GetPostResponse struct {
+	Post    models.Post `json:"post"`
+	Message string      `json:"message" example:"Post fetched successfully"`
+}
+
+// GetPostById gets a post by its ID.
+// @Summary Get post by ID
+// @Description Get a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Security ApiKeyAuth
+// @Success 200 {object} GetPostResponse
+// @Router /api/posts/{id} [get]
 func GetPostById(c *gin.Context) {
 	postId := c.Param("id")
 	// c.GetQuery("type")
@@ -71,6 +120,27 @@ func GetPostById(c *gin.Context) {
 	})
 }
 
+type UpdatePostRequestBody struct {
+	Title string `json:"title" example:"Updated Post Title"`
+	Body  string `json:"body,omitempty" example:"Updated Post Body"`
+}
+
+type UpdatePostResponse struct {
+	Post    models.Post `json:"post"`
+	Message string      `json:"message" example:"Post updated successfully"`
+}
+
+// UpdatePost updates a post by its ID.
+// @Summary Update post by ID
+// @Description Update a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param body body UpdatePostRequestBody true "Updated Post Data"
+// @Security ApiKeyAuth
+// @Success 200 {object} UpdatePostResponse
+// @Router /api/posts/{id} [patch]
 func UpdatePost(c *gin.Context) {
 	postId := c.Param("id")
 
@@ -105,6 +175,20 @@ func UpdatePost(c *gin.Context) {
 	})
 }
 
+type DeleteSuccessResponse struct {
+	Message string `json:"message" example:"Post deleted successfully"`
+}
+
+// DeletePost deletes a post by its ID.
+// @Summary Delete post by ID
+// @Description Delete a post by its ID
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Security ApiKeyAuth
+// @Success 200 {object} DeleteSuccessResponse
+// @Router /api/posts/{id} [delete]
 func DeletePost(c *gin.Context) {
 	postId := c.Param("id")
 

@@ -1,0 +1,358 @@
+basePath: /api
+definitions:
+  controllers.CreatePostRequestBody:
+    properties:
+      body:
+        example: Post Body
+        type: string
+      title:
+        example: Post Title
+        type: string
+    type: object
+  controllers.CreatePostResponse:
+    properties:
+      message:
+        example: Post created
+        type: string
+      post:
+        $ref: '#/definitions/models.Post'
+    type: object
+  controllers.DeleteSuccessResponse:
+    properties:
+      message:
+        example: Post deleted successfully
+        type: string
+    type: object
+  controllers.GetPostResponse:
+    properties:
+      message:
+        example: Post fetched successfully
+        type: string
+      post:
+        $ref: '#/definitions/models.Post'
+    type: object
+  controllers.GetPostsResponse:
+    properties:
+      message:
+        example: Posts fetched successfully
+        type: string
+      posts:
+        items:
+          $ref: '#/definitions/models.Post'
+        type: array
+    type: object
+  controllers.LoginRequestBody:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  controllers.LoginSuccessResponse:
+    properties:
+      message:
+        example: Logged in successfully!
+        type: string
+    type: object
+  controllers.RegenerateOtpRequestBody:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+    type: object
+  controllers.RegenerateOtpSuccessResponse:
+    properties:
+      message:
+        example: OTP sent successfully!
+        type: string
+    type: object
+  controllers.SignUpRequestBody:
+    properties:
+      avatar:
+        example: avatar.jpg
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  controllers.SignUpSuccessResponse:
+    properties:
+      message:
+        example: Sign up successful
+        type: string
+    type: object
+  controllers.UpdatePostRequestBody:
+    properties:
+      body:
+        example: Updated Post Body
+        type: string
+      title:
+        example: Updated Post Title
+        type: string
+    type: object
+  controllers.UpdatePostResponse:
+    properties:
+      message:
+        example: Post updated successfully
+        type: string
+      post:
+        $ref: '#/definitions/models.Post'
+    type: object
+  controllers.ValidateOtpRequestBody:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      otp:
+        example: "123456"
+        type: string
+    type: object
+  controllers.ValidateOtpSuccessResponse:
+    properties:
+      message:
+        example: Email address verified successfully!
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Post:
+    properties:
+      body:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: This is API for PostsApp using Gin
+  title: Gin PostsApp API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in a user
+      parameters:
+      - description: Request Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.LoginSuccessResponse'
+      summary: User login
+      tags:
+      - Auth
+  /api/auth/signup:
+    post:
+      consumes:
+      - application/json
+      - ' multipart/form-data'
+      description: Register a new user
+      parameters:
+      - description: User Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.SignUpRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.SignUpSuccessResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /api/auth/signup/regenerate:
+    post:
+      consumes:
+      - application/json
+      description: Regenerate OTP for email verification
+      parameters:
+      - description: Request Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegenerateOtpRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.RegenerateOtpSuccessResponse'
+      summary: Regenerate OTP
+      tags:
+      - Auth
+  /api/auth/signup/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate email address using OTP
+      parameters:
+      - description: Request Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ValidateOtpRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ValidateOtpSuccessResponse'
+      summary: Validate email address
+      tags:
+      - Auth
+  /api/posts/:
+    get:
+      consumes:
+      - application/json
+      description: Get all posts of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.GetPostsResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all posts
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new post
+      parameters:
+      - description: Post Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreatePostRequestBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controllers.CreatePostResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new post
+      tags:
+      - Posts
+  /api/posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.DeleteSuccessResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete post by ID
+      tags:
+      - Posts
+    get:
+      consumes:
+      - application/json
+      description: Get a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.GetPostResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get post by ID
+      tags:
+      - Posts
+    patch:
+      consumes:
+      - application/json
+      description: Update a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated Post Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdatePostRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UpdatePostResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update post by ID
+      tags:
+      - Posts
+swagger: "2.0"
