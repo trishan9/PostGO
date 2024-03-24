@@ -19,7 +19,11 @@ const config = {
     },
     extend: {
       fontFamily: {
+        "primary": "var(--font-inter)",
         "grotesk": "var(--font-grotesk)"
+      },
+      colors: {
+        "primary": "#5bc3fb"
       },
       keyframes: {
         "accordion-down": {
